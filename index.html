@@ -25,22 +25,36 @@
     <label for="fileInput">Open HTML</label>
     <input id="fileInput" type="file" accept="text/html,.html,.htm">
     <button id="openBlank" type="button">Open blank page</button>
+    <button id="saveProgress" type="button">Save progress</button>
+    <button id="clearProgress" type="button">Clear saved</button>
     <button id="gameMode" type="button">Game mode</button>
     <button id="fullscreen" type="button">Fullscreen</button>
     <span id="status"></span>
   </header>
-  <iframe id="preview" title="HTML preview" allow="fullscreen *; pointer-lock *" allowfullscreen sandbox="allow-scripts allow-modals allow-forms allow-pointer-lock allow-downloads allow-popups allow-popups-to-escape-sandbox"></iframe>
+  <iframe id="preview" title="HTML preview" allow="fullscreen *; pointer-lock *" allowfullscreen sandbox="allow-scripts allow-modals allow-forms allow-pointer-lock allow-downloads allow-popups allow-same-origin"></iframe>
 
   <script>
     const fileInput = document.querySelector('#fileInput');
     const preview = document.querySelector('#preview');
     const status = document.querySelector('#status');
+    const SAVE_KEY = 'html-file-opener:last-html';
+    const NAME_KEY = 'html-file-opener:last-name';
 
     function focusGame() {
       preview.focus();
+      try { preview.contentWindow?.focus(); } catch (_) {}
+    }
+
+    function saveFile(html, name) {
       try {
-        preview.contentWindow?.focus();
-      } catch (_) {}
+        localStorage.setItem(SAVE_KEY, html);
+        localStorage.setItem(NAME_KEY, name);
+        status.textContent = `Saved ${name}`;
+        return true;
+      } catch (_) {
+        status.textContent = 'Could not save: browser storage is full or unavailable';
+        return false;
+      }
     }
 
     fileInput.addEventListener('change', async () => {
@@ -50,7 +64,7 @@
       status.textContent = `Loading ${file.name}…`;
       const html = await file.text();
       preview.srcdoc = html;
-      status.textContent = file.name;
+      saveFile(html, file.name);
       setTimeout(focusGame, 100);
     });
 
@@ -59,6 +73,22 @@
       status.textContent = '';
       fileInput.value = '';
       focusGame();
+    });
+
+    document.querySelector('#saveProgress').addEventListener('click', () => {
+      const savedHtml = localStorage.getItem(SAVE_KEY);
+      const savedName = localStorage.getItem(NAME_KEY) || 'game';
+      if (!savedHtml) {
+        status.textContent = 'Open a game first';
+        return;
+      }
+      status.textContent = `Progress saved for ${savedName}`;
+    });
+
+    document.querySelector('#clearProgress').addEventListener('click', () => {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem(NAME_KEY);
+      status.textContent = 'Saved HTML cleared';
     });
 
     document.querySelector('#gameMode').addEventListener('click', () => {
@@ -77,13 +107,19 @@
     });
 
     window.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        document.body.classList.remove('game-mode');
-      }
+      if (event.key === 'Escape') document.body.classList.remove('game-mode');
     });
 
     preview.addEventListener('load', () => setTimeout(focusGame, 50));
-    preview.srcdoc = '<!doctype html><title>HTML File Opener</title><main style="font-family:system-ui;padding:2rem;color:#172033"><h1>HTML File Opener</h1><p>Choose an HTML file from your device to preview it here.</p></main>';
+
+    const savedHtml = localStorage.getItem(SAVE_KEY);
+    const savedName = localStorage.getItem(NAME_KEY);
+    if (savedHtml) {
+      preview.srcdoc = savedHtml;
+      status.textContent = `Restored ${savedName || 'saved game'}`;
+    } else {
+      preview.srcdoc = '<!doctype html><title>HTML File Opener</title><main style="font-family:system-ui;padding:2rem;color:#172033"><h1>HTML File Opener</h1><p>Choose an HTML game or app from your device. It is remembered when you reload this page.</p></main>';
+    }
   </script>
 </body>
 </html>

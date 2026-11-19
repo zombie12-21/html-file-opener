@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTML File Opener</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; height: 100vh; background: #10131a; color: #edf1f7; display: grid; grid-template-rows: auto 1fr; }
+    header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #181d27; border-bottom: 1px solid #303746; }
+    h1 { font-size: 18px; margin: 0 auto 0 0; }
+    button, label { border: 1px solid #4b5568; background: #252c38; color: inherit; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+    button:hover, label:hover { background: #303848; }
+    input { display: none; }
+    iframe { width: 100%; height: 100%; border: 0; background: white; }
+    #status { color: #b6c0d1; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>HTML File Opener</h1>
+    <label for="fileInput">Open HTML</label>
+    <input id="fileInput" type="file" accept="text/html,.html,.htm">
+    <button id="openBlank" type="button">Open blank page</button>
+    <span id="status"></span>
+  </header>
+  <iframe id="preview" title="HTML preview" sandbox="allow-scripts allow-modals allow-forms"></iframe>
+
+  <script>
+    const fileInput = document.querySelector('#fileInput');
+    const preview = document.querySelector('#preview');
+    const status = document.querySelector('#status');
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      status.textContent = `Loading ${file.name}…`;
+      const html = await file.text();
+      preview.srcdoc = html;
+      status.textContent = file.name;
+    });
+
+    document.querySelector('#openBlank').addEventListener('click', () => {
+      preview.srcdoc = '<!doctype html><title>Blank</title><main style="font-family:system-ui;padding:2rem"><h1>Blank page</h1><p>Choose an HTML file to preview it.</p></main>';
+      status.textContent = '';
+      fileInput.value = '';
+    });
+
+    preview.srcdoc = '<!doctype html><title>HTML File Opener</title><main style="font-family:system-ui;padding:2rem;color:#172033"><h1>HTML File Opener</h1><p>Choose an HTML file from your device to open it here.</p></main>';
+  </script>
+</body>
+</html>

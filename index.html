@@ -25,7 +25,7 @@
     <button id="openBlank" type="button">Open blank page</button>
     <span id="status"></span>
   </header>
-  <iframe id="preview" title="HTML preview" sandbox="allow-scripts allow-modals allow-forms"></iframe>
+  <iframe id="preview" title="HTML preview" sandbox="allow-scripts allow-modals allow-forms allow-pointer-lock"></iframe>
 
   <script>
     const fileInput = document.querySelector('#fileInput');
@@ -48,7 +48,7 @@
       fileInput.value = '';
     });
 
-    preview.srcdoc = '<!doctype html><title>HTML File Opener</title><main style="font-family:system-ui;padding:2rem;color:#172033"><h1>HTML File Opener</h1><p>Choose an HTML file from your device to open it here.</p></main>';
+    preview.srcdoc = '<!doctype html><title>HTML File Opener</title><main style="font-family:system-ui;padding:2rem;color:#172033"><h1>HTML File Opener</h1><p>Choose an HTML file from your device to preview it here.</p></main>';
   </script>
 </body>
 </html>

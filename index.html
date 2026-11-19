@@ -31,7 +31,7 @@
     <button id="fullscreen" type="button">Fullscreen</button>
     <span id="status"></span>
   </header>
-  <iframe id="preview" title="HTML preview" allow="fullscreen *; pointer-lock *" allowfullscreen sandbox="allow-scripts allow-modals allow-forms allow-pointer-lock allow-downloads allow-popups allow-same-origin"></iframe>
+  <iframe id="preview" title="HTML preview" tabindex="0" allow="fullscreen *; pointer-lock *; keyboard-map *" allowfullscreen sandbox="allow-scripts allow-modals allow-forms allow-pointer-lock allow-downloads allow-popups allow-same-origin"></iframe>
 
   <script>
     const fileInput = document.querySelector('#fileInput');
@@ -41,8 +41,11 @@
     const NAME_KEY = 'html-file-opener:last-name';
 
     function focusGame() {
-      preview.focus();
-      try { preview.contentWindow?.focus(); } catch (_) {}
+      preview.focus({ preventScroll: true });
+      try {
+        preview.contentWindow?.focus();
+        preview.contentWindow?.document?.body?.focus?.();
+      } catch (_) {}
     }
 
     function saveFile(html, name) {
@@ -65,7 +68,7 @@
       const html = await file.text();
       preview.srcdoc = html;
       saveFile(html, file.name);
-      setTimeout(focusGame, 100);
+      setTimeout(focusGame, 150);
     });
 
     document.querySelector('#openBlank').addEventListener('click', () => {
@@ -76,8 +79,8 @@
     });
 
     document.querySelector('#saveProgress').addEventListener('click', () => {
-      const savedHtml = localStorage.getItem(SAVE_KEY);
       const savedName = localStorage.getItem(NAME_KEY) || 'game';
+      const savedHtml = localStorage.getItem(SAVE_KEY);
       if (!savedHtml) {
         status.textContent = 'Open a game first';
         return;
@@ -106,11 +109,15 @@
       focusGame();
     });
 
+    // Clicking anywhere in the game surface gives keyboard and mouse capture
+    // back to the iframe instead of leaving focus on the opener controls.
+    preview.addEventListener('pointerdown', () => setTimeout(focusGame, 0));
+    preview.addEventListener('mousedown', () => setTimeout(focusGame, 0));
+    preview.addEventListener('load', () => setTimeout(focusGame, 100));
+
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') document.body.classList.remove('game-mode');
     });
-
-    preview.addEventListener('load', () => setTimeout(focusGame, 50));
 
     const savedHtml = localStorage.getItem(SAVE_KEY);
     const savedName = localStorage.getItem(NAME_KEY);
@@ -118,7 +125,7 @@
       preview.srcdoc = savedHtml;
       status.textContent = `Restored ${savedName || 'saved game'}`;
     } else {
-      preview.srcdoc = '<!doctype html><title>HTML File Opener</title><main style="font-family:system-ui;padding:2rem;color:#172033"><h1>HTML File Opener</h1><p>Choose an HTML game or app from your device. It is remembered when you reload this page.</p></main>';
+      preview.srcdoc = '<!doctype html><title>HTML File Opener</title><main style="font-family:system-ui;padding:2rem;color:#172033"><h1>HTML File Opener</h1><p>Choose an HTML game or app from your device. Click the game after opening it to capture keyboard and mouse input.</p></main>';
     }
   </script>
 </body>
